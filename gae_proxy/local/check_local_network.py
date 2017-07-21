@@ -7,19 +7,22 @@ import time
 import socket
 import threading
 
-current_path = os.path.dirname(os.path.abspath(__file__))
-
 if __name__ == "__main__":
-    python_path = os.path.abspath( os.path.join(current_path, os.pardir, os.pardir, 'python27', '1.0'))
+    current_path = os.path.dirname(os.path.abspath(__file__))
+    root_path = os.path.abspath(os.path.join(current_path, os.pardir, os.pardir))
+    gae_path = os.path.join(root_path, "gae_proxy")
+    sys.path.append(gae_path)
 
-    noarch_lib = os.path.abspath( os.path.join(python_path, 'lib', 'noarch'))
+    noarch_lib = os.path.join(root_path, 'lib', 'noarch')
     sys.path.append(noarch_lib)
+    common_lib = os.path.join(root_path, 'lib', 'common')
+    sys.path.append(common_lib)
 
     if sys.platform == "win32":
-        win32_lib = os.path.abspath( os.path.join(python_path, 'lib', 'win32'))
+        win32_lib = os.path.join(root_path, 'lib', 'win32')
         sys.path.append(win32_lib)
     elif sys.platform.startswith("linux"):
-        linux_lib = os.path.abspath( os.path.join(python_path, 'lib', 'linux'))
+        linux_lib = os.path.join(root_path, 'lib', 'linux')
         sys.path.append(linux_lib)
 
 import OpenSSL
@@ -96,7 +99,7 @@ def _check_worker():
             xlog.debug("network is ok, cost:%d ms", 1000*(time.time() - time_now))
             return True
     except Exception as e:
-        xlog.warn("network fail:%r", e)
+        xlog.warn("check network fail:%r", e)
         network_stat = "Fail"
         last_check_time = time.time()
         return False
@@ -122,10 +125,10 @@ def _simple_check_worker():
     _checking_lock.release()
     try:
         conn = http.client.HTTPConnection("www.baidu.com", 80, timeout=3)
-        header = {"user-agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Safari/537.36",
-                  "accept":"application/json, text/javascript, */*; q=0.01",
+        header = {"user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/46.0.2490.71 Safari/537.36",
+                  "accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
                   "accept-encoding":"gzip, deflate, sdch",
-                  "accept-language":'en-US,en;q=0.8,ja;q=0.6,zh-CN;q=0.4,zh;q=0.2',
+                  "accept-language":'zh-CN,zh;q=0.8,zh-TW;q=0.6,en-US;q=0.4,en;q=0.2',
                   "connection":"keep-alive"
                   }
         conn.request("HEAD", "/", headers=header)
@@ -136,7 +139,7 @@ def _simple_check_worker():
             xlog.debug("network is ok, cost:%d ms", 1000*(time.time() - time_now))
             return True
     except Exception as e:
-        xlog.warn("network fail:%r", e)
+        xlog.exception("simple check network fail:%r", e)
         network_stat = "Fail"
         last_check_time = time.time()
         return False

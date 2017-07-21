@@ -42,7 +42,7 @@ xlog = getLogger("gae_proxy")
 
 
 g_cacertfile = os.path.join(current_path, "cacert.pem")
-openssl_context = SSLConnection.context_builder(ca_certs=g_cacertfile)
+openssl_context = SSLConnection.context_builder(ca_certs=g_cacertfile.encode())
 openssl_context.set_session_id(binascii.b2a_hex(os.urandom(10)))
 if hasattr(OpenSSL.SSL, 'SESS_CACHE_BOTH'):
     openssl_context.set_session_cache_mode(OpenSSL.SSL.SESS_CACHE_BOTH)
@@ -98,9 +98,9 @@ def connect_ssl(ip, port=443, timeout=5, openssl_context=None, check_cert=True):
     time_handshaked = time.time()
 
     # report network ok
-    check_local_network.network_stat = "OK"
-    check_local_network.last_check_time = time_handshaked
-    check_local_network.continue_fail_count = 0
+    #check_local_network.network_stat = "OK"
+    #check_local_network.last_check_time = time_handshaked
+    #check_local_network.continue_fail_count = 0
 
     cert = ssl_sock.get_peer_certificate()
     if not cert:
@@ -174,7 +174,7 @@ def check_goagent(ssl_sock, appid):
         return False
 
     content = response.read()
-    if "GoAgent" not in content:
+    if b"GoAgent" not in content:
         if __name__ == "__main__":
             xlog.warn("app check %s content:%s", appid, content)
         return False
